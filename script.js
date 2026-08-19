@@ -490,8 +490,8 @@ function drawStudyLine(canvasId) {
 }
 
 const LETTER_COLORS = {
-  A: "#00b894", "B+": "#00cec9", B: "#0ea5e9", "C+": "#f59e0b",
-  C: "#e67e22", "D+": "#e17055", D: "#d63031", F: "#b71540",
+  A: "#00b894", "B+": "#00cec9", B: "#1890ff", "C+": "#fa8c16",
+  C: "#e67e22", "D+": "#e17055", D: "#d63031", F: "#ff4757",
 };
 
 function drawGradesDoughnut() {
