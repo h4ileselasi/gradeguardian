@@ -1,5 +1,6 @@
 /* ============================================================
-   GradeGuardian v2.0 — Application Logic
+   Student Academic Progress Tracking System (SAPTS)
+   Application Logic
    100% local-first: localStorage for structured data,
    IndexedDB for uploaded files. No server, no account needed.
    ============================================================ */
@@ -8,15 +9,26 @@
 
 /* ==================== STORAGE LAYER ==================== */
 const KEYS = {
-  courses: "gg_courses",
-  tasks: "gg_tasks",
-  sessions: "gg_sessions",
-  vault: "gg_vault",
-  decks: "gg_decks",
-  cards: "gg_cards",
-  settings: "gg_settings",
-  seeded: "gg_seeded",
+  courses: "sapts_courses",
+  tasks: "sapts_tasks",
+  sessions: "sapts_sessions",
+  vault: "sapts_vault",
+  decks: "sapts_decks",
+  cards: "sapts_cards",
+  settings: "sapts_settings",
+  seeded: "sapts_seeded",
 };
+
+/* Data saved under the old key prefix is carried over once, on first load. */
+(function adoptLegacyKeys() {
+  try {
+    Object.values(KEYS).forEach((key) => {
+      if (localStorage.getItem(key) !== null) return;
+      const legacy = localStorage.getItem(key.replace(/^sapts_/, "gg_"));
+      if (legacy !== null) localStorage.setItem(key, legacy);
+    });
+  } catch (e) {}
+})();
 
 function load(key, fallback) {
   try {
@@ -57,7 +69,7 @@ let idb = null;
 function openFileDB() {
   return new Promise((resolve, reject) => {
     if (idb) return resolve(idb);
-    const req = indexedDB.open("gradeguardian", 1);
+    const req = indexedDB.open("sapts", 1);
     req.onupgradeneeded = () => {
       if (!req.result.objectStoreNames.contains("files")) {
         req.result.createObjectStore("files", { keyPath: "id" });
@@ -65,9 +77,53 @@ function openFileDB() {
     };
     req.onsuccess = () => {
       idb = req.result;
-      resolve(idb);
+      adoptLegacyFiles(idb).then(() => resolve(idb), () => resolve(idb));
     };
     req.onerror = () => reject(req.error);
+  });
+}
+
+/* Vault uploads saved under the old database name are copied across once. */
+function adoptLegacyFiles(db) {
+  return new Promise((resolve, reject) => {
+    if (localStorage.getItem("sapts_files_adopted")) return resolve();
+    const done = () => {
+      localStorage.setItem("sapts_files_adopted", "1");
+      resolve();
+    };
+    const req = indexedDB.open("gradeguardian", 1);
+    req.onupgradeneeded = () => {
+      // The old database did not exist — nothing to carry over.
+      if (!req.result.objectStoreNames.contains("files")) {
+        req.result.createObjectStore("files", { keyPath: "id" });
+      }
+    };
+    req.onerror = () => reject(req.error);
+    req.onsuccess = () => {
+      const oldDb = req.result;
+      let all;
+      try {
+        all = oldDb.transaction("files").objectStore("files").getAll();
+      } catch (e) {
+        oldDb.close();
+        return done();
+      }
+      all.onerror = () => {
+        oldDb.close();
+        done();
+      };
+      all.onsuccess = () => {
+        const records = all.result || [];
+        oldDb.close();
+        indexedDB.deleteDatabase("gradeguardian");
+        if (!records.length) return done();
+        const tx = db.transaction("files", "readwrite");
+        const store = tx.objectStore("files");
+        records.forEach((r) => store.put(r));
+        tx.oncomplete = done;
+        tx.onerror = done;
+      };
+    };
   });
 }
 
@@ -248,7 +304,7 @@ function migrateV1() {
   ["courses", "tasks", "studySessions", "vaultItems", "firebaseConfig", "profileName", "darkMode"].forEach(
     (k) => localStorage.removeItem(k),
   );
-  console.log("GradeGuardian: migrated v1 data to v2 format.");
+  console.log("SAPTS: migrated v1 data to the current storage format.");
   return true;
 }
 
@@ -1548,7 +1604,7 @@ function applyProfileToUI() {
 
 function exportData() {
   const data = {
-    app: "gradeguardian",
+    app: "sapts",
     version: 2,
     exportedAt: new Date().toISOString(),
     courses: getCourses(),
@@ -1562,7 +1618,7 @@ function exportData() {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `gradeguardian-backup-${todayStr()}.json`;
+  a.download = `sapts-backup-${todayStr()}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
   showToast("Backup exported ✓");
@@ -1573,7 +1629,8 @@ function importData(file) {
   reader.onload = () => {
     try {
       const data = JSON.parse(reader.result);
-      if (data.app !== "gradeguardian") throw new Error("Not a GradeGuardian backup");
+      if (data.app !== "sapts" && data.app !== "gradeguardian")
+        throw new Error("Not a Student Academic Progress Tracking System backup");
       confirmAction(
         "Import Backup",
         "This will replace your current data with the backup. Continue?",

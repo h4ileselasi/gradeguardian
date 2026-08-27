@@ -6,9 +6,9 @@
     <meta name="color-scheme" content="light dark" />
     <meta
       name="description"
-      content="GradeGuardian - an offline-first academic companion that helps students track courses, grades, study habits and revision."
+      content="Student Academic Progress Tracking System — an offline-first web application that helps students track courses, grades, study habits and revision."
     />
-    <title>GradeGuardian — Student Academic Companion</title>
+    <title>Student Academic Progress Tracking System</title>
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>"
@@ -17,10 +17,13 @@
     <!-- Apply the saved theme before first paint to avoid a light-mode flash -->
     <script>
       try {
-        var ggTheme =
+        var stored =
+          localStorage.getItem("sapts_settings") || localStorage.getItem("gg_settings") || "{}";
+        var theme =
           new URLSearchParams(location.search).get("theme") ||
-          (JSON.parse(localStorage.getItem("gg_settings") || "{}").theme || "light");
-        document.documentElement.setAttribute("data-theme", ggTheme === "dark" ? "dark" : "light");
+          JSON.parse(stored).theme ||
+          "light";
+        document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
       } catch (e) {}
     </script>
 
@@ -35,7 +38,10 @@
       <aside class="sidebar">
         <div class="logo">
           <div class="logo-mark"><i class="fas fa-graduation-cap"></i></div>
-          <h2>Grade<span>Guardian</span></h2>
+          <div class="logo-text">
+            <h2>SAPTS</h2>
+            <p>Student Academic Progress Tracking System</p>
+          </div>
         </div>
         <nav class="nav-menu">
           <ul>
@@ -535,11 +541,14 @@
               </div>
 
               <div class="card settings-section about">
-                <h3 class="card-title"><i class="fas fa-circle-info"></i> About GradeGuardian</h3>
+                <h3 class="card-title">
+                  <i class="fas fa-circle-info"></i> About this System
+                </h3>
                 <p class="muted">
-                  GradeGuardian v2.0 — an offline-first academic companion. Built with HTML5,
-                  CSS3 and vanilla JavaScript. Data is stored with the Web Storage API and
-                  IndexedDB; no account, internet connection or external database is required.
+                  Student Academic Progress Tracking System (SAPTS) — a web-based application
+                  built with HTML5, CSS3 and vanilla JavaScript, served locally through XAMPP.
+                  Data is stored with the Web Storage API and IndexedDB; no account, internet
+                  connection or external database server is required.
                 </p>
               </div>
             </div>

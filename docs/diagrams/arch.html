@@ -1,0 +1,40 @@
+<style>
+ *{box-sizing:border-box;margin:0;padding:0}
+ body{font-family:"Times New Roman",Georgia,serif;background:#fff;padding:26px;width:900px}
+ .tier{border:2px solid #222;border-radius:6px;margin-bottom:0;padding:14px 18px;background:#fff}
+ .tier h3{font-size:19px;margin-bottom:4px}
+ .tier .sub{font-size:14px;font-style:italic;color:#444;margin-bottom:10px}
+ .boxes{display:flex;gap:10px;flex-wrap:wrap}
+ .b{border:1.5px solid #555;border-radius:4px;padding:7px 12px;font-size:14px;background:#f4f4f4}
+ .arrow{text-align:center;font-size:13px;color:#222;padding:7px 0;line-height:1.3}
+ .arrow b{font-size:17px;letter-spacing:2px;display:block}
+ .t1{background:#eef4fb}.t2{background:#f3f0fa}.t3{background:#eef7f1}
+</style>
+<div class="tier t1">
+  <h3>Presentation Tier — Client (Web Browser)</h3>
+  <div class="sub">HTML5 &nbsp;·&nbsp; CSS3 &nbsp;·&nbsp; Responsive layout (Grid / Flexbox)</div>
+  <div class="boxes">
+    <div class="b">Dashboard</div><div class="b">Courses</div><div class="b">Grades &amp; GPA</div>
+    <div class="b">Study Tracker</div><div class="b">Flashcards</div><div class="b">Vault</div>
+    <div class="b">Goals &amp; Tasks</div><div class="b">Settings</div>
+  </div>
+</div>
+<div class="arrow"><b>&#8593;&nbsp;&nbsp;&#8595;</b>DOM events / rendered views</div>
+<div class="tier t2">
+  <h3>Application Logic Tier — JavaScript (ES6+)</h3>
+  <div class="sub">Executed in the browser; served over HTTP by Apache (XAMPP)</div>
+  <div class="boxes">
+    <div class="b">Router &amp; View Controller</div><div class="b">GradeCalculator (weighted average, GPA)</div>
+    <div class="b">StudySession / Pomodoro Engine</div><div class="b">Task &amp; Goal Manager</div>
+    <div class="b">Chart Renderer (Chart.js)</div><div class="b">Validation &amp; Backup Service</div>
+  </div>
+</div>
+<div class="arrow"><b>&#8593;&nbsp;&nbsp;&#8595;</b>read / write operations</div>
+<div class="tier t3">
+  <h3>Data Tier — Client-Side Persistent Storage</h3>
+  <div class="sub">No external database server; data never leaves the user's device</div>
+  <div class="boxes">
+    <div class="b">Web Storage API (localStorage) — structured records</div>
+    <div class="b">IndexedDB — uploaded files (images, PDFs)</div>
+  </div>
+</div>

@@ -1,5 +1,5 @@
 /* ============================================================
-   GradeGuardian v2.0 — Stylesheet
+   Student Academic Progress Tracking System (SAPTS) — Stylesheet
    Theme system built on CSS custom properties.
    All fonts & icons are bundled locally (works fully offline).
    ============================================================ */
@@ -182,14 +182,18 @@ body {
   flex-shrink: 0;
 }
 
-.logo h2 {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text);
+.logo-text h2 {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--primary);
 }
 
-.logo h2 span {
-  color: var(--primary);
+.logo-text p {
+  margin-top: 2px;
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--text-muted);
 }
 
 .nav-menu {
@@ -2115,7 +2119,7 @@ body {
     width: 68px;
   }
 
-  .sidebar .logo h2,
+  .sidebar .logo-text,
   .sidebar .user-info,
   .nav-menu a span {
     display: none;

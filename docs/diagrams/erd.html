@@ -1,0 +1,35 @@
+<style>
+ *{box-sizing:border-box;margin:0;padding:0}
+ body{font-family:"Times New Roman",Georgia,serif;background:#fff;padding:24px;width:960px}
+ table{border-collapse:collapse;width:100%}
+ .ent{border:2px solid #222;border-radius:5px;overflow:hidden;margin-bottom:4px}
+ .ent h4{background:#ececec;border-bottom:1.5px solid #222;font-size:15px;padding:6px 10px;text-align:center;letter-spacing:.3px}
+ .ent ul{list-style:none;padding:7px 12px;font-size:13.5px;line-height:1.55}
+ .ent li b{font-style:italic}
+ .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+ .rel{text-align:center;font-size:13.5px;padding:8px 0 10px;color:#111}
+ .rel b{letter-spacing:1px}
+ .top{width:320px;margin:0 auto 0}
+</style>
+<div class="top">
+  <div class="ent"><h4>USER (Profile / Settings)</h4>
+    <ul><li><b>name</b>, email, theme</li><li>weeklyGoal, focusLen, breakLen</li></ul></div>
+</div>
+<div class="rel"><b>&#8595;</b><br>1 : M &nbsp; owns</div>
+<div class="row">
+  <div class="ent"><h4>COURSE</h4>
+    <ul><li><b>id</b> (PK)</li><li>name, code</li><li>creditHours</li><li>lecturer, semester</li><li>score, grade</li></ul></div>
+  <div class="ent"><h4>STUDY_SESSION</h4>
+    <ul><li><b>id</b> (PK)</li><li>courseId (FK)</li><li>startedAt, minutes</li><li>type (focus / break)</li></ul></div>
+  <div class="ent"><h4>TASK / GOAL</h4>
+    <ul><li><b>id</b> (PK)</li><li>courseId (FK)</li><li>title, dueDate</li><li>priority, done</li></ul></div>
+</div>
+<div class="rel">&#8593;&nbsp; 1 : M &nbsp; recorded for &nbsp;&#8593;&nbsp;&nbsp;&nbsp; 1 : M &nbsp; assigned to &nbsp;&#8593;</div>
+<div class="row">
+  <div class="ent"><h4>ASSESSMENT</h4>
+    <ul><li><b>id</b> (PK)</li><li>courseId (FK)</li><li>title, weight (%)</li><li>score, maxScore</li></ul></div>
+  <div class="ent"><h4>DECK / FLASHCARD</h4>
+    <ul><li><b>id</b> (PK)</li><li>deckId (FK)</li><li>front, back</li><li>mastered</li></ul></div>
+  <div class="ent"><h4>VAULT_ITEM</h4>
+    <ul><li><b>id</b> (PK)</li><li>title, type, courseId (FK)</li><li>note / fileRef &rarr; IndexedDB</li></ul></div>
+</div>

@@ -1,14 +1,27 @@
-# 🎓 GradeGuardian v2.0
+# 🎓 Student Academic Progress Tracking System (SAPTS)
 
-An **offline-first academic companion** that helps students track courses, grades,
-study habits and revision — built with plain HTML5, CSS3 and vanilla JavaScript.
+A **web-based student academic progress tracking system** that helps students
+track courses, grades, study habits and revision — built with plain HTML5, CSS3
+and vanilla JavaScript, and hosted locally on the **XAMPP** Apache server.
 
-## Running it
+Ghana Communication Technology University (GCTU) — Faculty of Computing and
+Information Systems.
 
-No installation, no server, no account. Just open `index.html` in any modern
-browser (Chrome, Edge, Firefox). All data is stored locally on your device
-(localStorage + IndexedDB). Internet is **not** required — fonts, icons and the
-chart library are bundled in `vendor/`.
+## Running it on XAMPP
+
+1. Install **XAMPP** (<https://www.apachefriends.org>).
+2. Copy this whole project folder into the XAMPP web root:
+   - Windows — `C:\xampp\htdocs\sapts`
+   - macOS — `/Applications/XAMPP/htdocs/sapts`
+   - Linux — `/opt/lampp/htdocs/sapts`
+3. Open the **XAMPP Control Panel** and press **Start** next to **Apache**.
+   (MySQL is not required — the system stores data in the browser.)
+4. Visit <http://localhost/sapts/> in Chrome, Edge or Firefox.
+
+The application is entirely client-side, so Apache only has to serve the files.
+No internet connection is needed at any point — fonts, icons and the chart
+library are bundled in `vendor/`. See [`docs/XAMPP_SETUP.md`](docs/XAMPP_SETUP.md)
+for a step-by-step guide with troubleshooting.
 
 ## Features
 
@@ -26,18 +39,33 @@ chart library are bundled in `vendor/`.
 ## Project structure
 
 ```
-school project/
+sapts/
 ├── index.html        # Single-page application markup
 ├── style.css         # Theme system (CSS variables) + all component styles
 ├── script.js         # Application logic (storage, router, charts, timer…)
+├── .htaccess         # Apache configuration used by XAMPP
 ├── vendor/           # Bundled Chart.js, Font Awesome, Poppins fonts (offline)
-├── docs/             # Project report, defense slides, screenshots
-└── backup_original/  # The previous (v1) version of the app, kept for reference
+├── docs/             # Project report, defense slides, screenshots, XAMPP guide
+└── backup_original/  # The previous version of the app, kept for reference
 ```
+
+## Architecture
+
+Three-tier, entirely on the client:
+
+| Tier | Technology |
+| --- | --- |
+| Presentation | HTML5, CSS3 (responsive layout with Grid/Flexbox) |
+| Application logic | Vanilla JavaScript (ES6+), Chart.js for visualisation |
+| Data | Web Storage API (structured records) + IndexedDB (uploaded files) |
+
+Apache, provided by XAMPP, acts as the local web server that delivers these
+files to the browser.
 
 ## Notes
 
-- First launch seeds friendly demo data; use **Settings → Reset All Data** to start clean.
+- First launch seeds demo data; use **Settings → Reset All Data** to start clean.
 - Backups (Settings → Export) contain all structured data; uploaded binary files
   stay in the browser's IndexedDB and are not included in the JSON file.
-- v1 data (from the old Firebase version) is migrated automatically on first run.
+- Data saved by earlier versions of the application is migrated automatically on
+  first run.

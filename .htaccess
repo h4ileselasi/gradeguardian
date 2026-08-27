@@ -1,0 +1,35 @@
+# Student Academic Progress Tracking System (SAPTS)
+# Apache configuration for local hosting under XAMPP.
+
+# Serve index.html when the folder is requested directly.
+DirectoryIndex index.html
+
+# Basic hardening — mirrors what a production host would send.
+<IfModule mod_headers.c>
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "no-referrer"
+</IfModule>
+
+# Correct MIME types for the bundled assets.
+<IfModule mod_mime.c>
+  AddType text/javascript .js
+  AddType text/css .css
+  AddType font/woff2 .woff2
+  AddType image/svg+xml .svg
+</IfModule>
+
+# Keep the browser from caching the application files during a demo,
+# so a refresh always shows the current build.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|js|css)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# Never expose the project's version-control or documentation folders.
+<IfModule mod_authz_core.c>
+  <FilesMatch "^\.">
+    Require all denied
+  </FilesMatch>
+</IfModule>
