@@ -12,9 +12,10 @@ provider and no external database server are involved.
 ## 1. Install XAMPP
 
 Download XAMPP from <https://www.apachefriends.org> and run the installer.
-During installation only the **Apache** component is required; MySQL, FileZilla,
-Mercury and Tomcat can be left unselected, because this system stores its data
-inside the browser rather than in a database server.
+The **Apache** component is required. Select **MySQL** as well if you intend to
+load the relational schema described in section 6 — the application itself does
+not need it, because it stores its data inside the browser. FileZilla, Mercury
+and Tomcat can be left unselected.
 
 ## 2. Copy the project into the web root
 
@@ -46,6 +47,41 @@ http://localhost/sapts/
 The dashboard loads and the system is ready to use. On a first run it seeds
 sample data so that the charts and lists are populated for demonstration; this
 can be cleared from **Settings → Reset All Data**.
+
+---
+
+## 6. Optional: loading the relational schema
+
+The project ships `database/sapts_schema.sql`, which expresses the same data
+model as SQL. The running application does not use it; it exists so that the
+design can be inspected in a relational database and so the system can later be
+extended to serve several students from one server.
+
+1. Start **MySQL** from the XAMPP Control Panel, alongside Apache.
+2. Open <http://localhost/phpmyadmin>.
+3. Choose the **Import** tab, select `database/sapts_schema.sql`, and press **Go**.
+
+The script creates a database named `sapts` containing eight tables, and it
+loads sample data matching the figures the application shows. Four views
+reproduce the calculations the application performs in JavaScript. To confirm
+the import, open the **SQL** tab and run:
+
+```sql
+USE sapts;
+SELECT code, name, weighted_average, letter_grade, grade_points
+  FROM v_course_grade ORDER BY code;
+SELECT * FROM v_student_gpa;
+```
+
+The first query returns the five seeded courses with marks of 85, 78, 72, 66 and
+58, and the second returns a grade point average of **2.89** across 14 credit
+hours — the same figures shown on the application's dashboard.
+
+Alternatively, from a terminal:
+
+```
+mysql -u root -p < database/sapts_schema.sql
+```
 
 ---
 

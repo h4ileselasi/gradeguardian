@@ -15,7 +15,8 @@ Information Systems.
    - macOS — `/Applications/XAMPP/htdocs/sapts`
    - Linux — `/opt/lampp/htdocs/sapts`
 3. Open the **XAMPP Control Panel** and press **Start** next to **Apache**.
-   (MySQL is not required — the system stores data in the browser.)
+   (MySQL is optional — the application stores its data in the browser. Start it
+   only if you want to load the relational schema described below.)
 4. Visit <http://localhost/sapts/> in Chrome, Edge or Firefox.
 
 The application is entirely client-side, so Apache only has to serve the files.
@@ -44,6 +45,7 @@ sapts/
 ├── style.css         # Theme system (CSS variables) + all component styles
 ├── script.js         # Application logic (storage, router, charts, timer…)
 ├── .htaccess         # Apache configuration used by XAMPP
+├── database/         # MySQL schema expressing the same data model in SQL
 ├── vendor/           # Bundled Chart.js, Font Awesome, Poppins fonts (offline)
 ├── docs/             # Project report, defense slides, screenshots, XAMPP guide
 └── backup_original/  # The previous version of the app, kept for reference
@@ -61,6 +63,17 @@ Three-tier, entirely on the client:
 
 Apache, provided by XAMPP, acts as the local web server that delivers these
 files to the browser.
+
+### The relational schema
+
+`database/sapts_schema.sql` expresses the same data model in SQL: eight tables
+with primary keys, foreign keys and check constraints, plus four views that
+reproduce the weighted average, letter grade, GPA and study-hour calculations
+the application performs in JavaScript. Import it through phpMyAdmin (start
+MySQL in XAMPP first) or with `mysql -u root -p < database/sapts_schema.sql`.
+The application does not read from it — it documents the design formally and is
+the migration path to a shared, multi-user deployment. See
+[`docs/XAMPP_SETUP.md`](docs/XAMPP_SETUP.md) section 6.
 
 ## Notes
 
