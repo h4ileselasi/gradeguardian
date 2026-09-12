@@ -30,6 +30,50 @@ const KEYS = {
   } catch (e) {}
 })();
 
+/* ==================== SERVER SYNC ====================
+   The signed-in student's records live in MySQL. They are copied into local
+   storage once at sign-in so the rest of the application can keep reading them
+   synchronously, and every change is written back to the server. */
+const Sync = {
+  ready: false,
+  pending: null,
+  /** Replace local storage with this user's rows from the server. */
+  async hydrate() {
+    const d = await Auth.get("api/data.php");
+    const put = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+    put(KEYS.courses, d.courses || []);
+    put(KEYS.sessions, d.sessions || []);
+    put(KEYS.tasks, d.tasks || []);
+    put(KEYS.decks, d.decks || []);
+    put(KEYS.cards, d.cards || []);
+    put(KEYS.vault, d.vault || []);
+    put(KEYS.settings, { ...DEFAULT_SETTINGS, ...(d.settings || {}) });
+    localStorage.setItem(KEYS.seeded, "true");
+    this.ready = true;
+  },
+  /** Push everything back. Calls are coalesced so rapid edits send once. */
+  push() {
+    if (!this.ready) return;
+    clearTimeout(this.pending);
+    this.pending = setTimeout(async () => {
+      try {
+        await Auth.post("api/data.php", {
+          courses: getCourses(),
+          sessions: getSessions(),
+          tasks: getTasks(),
+          decks: getDecks(),
+          cards: getCards(),
+          vault: getVault(),
+          settings: getSettings(),
+        });
+        setSyncState("saved");
+      } catch (e) {
+        setSyncState("error", e.message);
+      }
+    }, 600);
+  },
+};
+
 function load(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
@@ -41,6 +85,7 @@ function load(key, fallback) {
 
 function save(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
+  Sync.push();
 }
 
 const getCourses = () => load(KEYS.courses, []);
@@ -285,29 +330,7 @@ function calculateGPA() {
   return credits ? (pts / credits).toFixed(2) : "0.00";
 }
 
-/* ==================== MIGRATION & DEMO DATA ==================== */
-function migrateV1() {
-  if (localStorage.getItem(KEYS.courses)) return false; // already on v2
-  const oldCourses = load("courses", null);
-  if (!oldCourses) return false;
-
-  save(KEYS.courses, oldCourses);
-  save(KEYS.tasks, load("tasks", []));
-  save(KEYS.sessions, load("studySessions", []));
-  const settings = getSettings();
-  const oldName = localStorage.getItem("profileName");
-  if (oldName) settings.name = oldName;
-  if (localStorage.getItem("darkMode") === "true") settings.theme = "dark";
-  save(KEYS.settings, settings);
-  save(KEYS.seeded, true);
-
-  ["courses", "tasks", "studySessions", "vaultItems", "firebaseConfig", "profileName", "darkMode"].forEach(
-    (k) => localStorage.removeItem(k),
-  );
-  console.log("SAPTS: migrated v1 data to the current storage format.");
-  return true;
-}
-
+/* ==================== DEMO DATA ==================== */
 function seedDemoData() {
   const day = (offset) => {
     const d = new Date();
@@ -394,7 +417,6 @@ function seedDemoData() {
   save(KEYS.cards, cards);
   save(KEYS.vault, vault);
   const settings = getSettings();
-  if (settings.name === "Student") settings.name = "Richard Yawlui";
   save(KEYS.settings, settings);
   save(KEYS.seeded, true);
 }
@@ -1892,6 +1914,10 @@ function setupEventListeners() {
     updateTimerUI();
     showToast("Preferences saved");
   });
+  $("signOutBtn").addEventListener("click", () => {
+    confirmAction("Sign out", "Sign out of the system?", () => Auth.logout());
+  });
+
   $("exportDataBtn").addEventListener("click", exportData);
   $("importDataBtn").addEventListener("click", () => $("importFileInput").click());
   $("importFileInput").addEventListener("change", (e) => {
@@ -1906,7 +1932,13 @@ function setupEventListeners() {
     });
   });
   $("clearDataBtn").addEventListener("click", () => {
-    confirmAction("Reset All Data", "This permanently deletes ALL your local data. Continue?", async () => {
+    confirmAction("Reset All Data", "This permanently deletes all of your records, on this device and on the server. Continue?", async () => {
+      try {
+        await Auth.post("api/data.php", {
+          courses: [], sessions: [], tasks: [], decks: [], cards: [], vault: [],
+        });
+      } catch (e) { /* the local clear below still proceeds */ }
+      Sync.ready = false;
       localStorage.clear();
       try {
         const db = await openFileDB();
@@ -1918,12 +1950,45 @@ function setupEventListeners() {
   });
 }
 
-/* ==================== BOOT ==================== */
-document.addEventListener("DOMContentLoaded", () => {
-  migrateV1();
-  if (!load(KEYS.seeded, false)) seedDemoData();
+/* ==================== SYNC INDICATOR ==================== */
+function setSyncState(state, detail) {
+  const el = $("syncState");
+  if (!el) return;
+  const map = {
+    saving: ["fa-cloud-arrow-up", "Saving…", ""],
+    saved: ["fa-cloud", "Saved", ""],
+    error: ["fa-triangle-exclamation", "Not saved", detail || ""],
+  };
+  const [icon, label, title] = map[state] || map.saved;
+  el.innerHTML = `<i class="fas ${icon}"></i> ${label}`;
+  el.title = title;
+  el.dataset.state = state;
+}
 
-  // Theme (URL ?theme=… override is handy for demos)
+/* ==================== BOOT ==================== */
+document.addEventListener("DOMContentLoaded", async () => {
+  /* Nobody sees the application without signing in. requireUser redirects and
+     never resolves for an anonymous visitor, so nothing below runs for them. */
+  const account = await Auth.requireUser();
+
+  try {
+    await Sync.hydrate();
+  } catch (e) {
+    document.body.innerHTML =
+      '<div style="max-width:560px;margin:14vh auto;padding:28px;font-family:Poppins,system-ui,sans-serif;' +
+      'text-align:center;line-height:1.6"><h2 style="margin-bottom:10px">The system cannot reach your records</h2>' +
+      '<p style="color:#636e72">' + e.message + '</p>' +
+      '<p style="color:#8b95a1;font-size:13px;margin-top:14px">Start Apache <em>and</em> MySQL in the XAMPP ' +
+      'Control Panel, then reload this page.</p></div>';
+    return;
+  }
+
+  /* An administrator gets a way back to the enrolment console. */
+  if (account.role === "admin") {
+    const link = $("adminLink");
+    if (link) link.hidden = false;
+  }
+
   const settings = getSettings();
   const urlTheme = new URLSearchParams(location.search).get("theme");
   if (urlTheme === "dark" || urlTheme === "light") {
@@ -1938,6 +2003,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setupEventListeners();
   applyProfileToUI();
+  setSyncState("saved");
 
   const start = location.hash.slice(1);
   navigateTo(PAGES.includes(start) ? start : "dashboard");

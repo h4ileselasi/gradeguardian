@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Enrolment — Student Academic Progress Tracking System</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>"
+    />
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .admin-shell {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 26px 20px 60px;
+      }
+      .admin-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 22px;
+      }
+      .admin-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .admin-brand .logo-mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: var(--primary);
+        color: #fff;
+        font-size: 19px;
+      }
+      .admin-brand h1 {
+        font-size: 19px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        color: var(--primary);
+      }
+      .admin-brand p {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+      .admin-grid {
+        display: grid;
+        grid-template-columns: 330px 1fr;
+        gap: 18px;
+        align-items: start;
+      }
+      @media (max-width: 860px) {
+        .admin-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .card label {
+        display: block;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--text-soft);
+        margin-bottom: 5px;
+      }
+      .card input {
+        width: 100%;
+        padding: 10px 12px;
+        font: inherit;
+        font-size: 14px;
+        color: var(--text);
+        background: var(--surface-2);
+        border: 1px solid var(--surface-3);
+        border-radius: var(--radius-sm);
+      }
+      .card input:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: var(--surface);
+      }
+      .form-group {
+        margin-bottom: 13px;
+      }
+      table.roster {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+      }
+      table.roster th {
+        text-align: left;
+        font-size: 11.5px;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--surface-3);
+        white-space: nowrap;
+      }
+      table.roster td {
+        padding: 11px 10px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+      }
+      table.roster tr:last-child td {
+        border-bottom: none;
+      }
+      .who {
+        font-weight: 600;
+        color: var(--text);
+      }
+      .idx {
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+      .chip {
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+      .chip.active {
+        background: var(--tile-green-bg);
+        color: var(--success);
+      }
+      .chip.inactive {
+        background: var(--surface-3);
+        color: var(--text-muted);
+      }
+      .chip.admin {
+        background: var(--tile-blue-bg);
+        color: var(--tile-blue-fg);
+      }
+      .chip.pending {
+        background: var(--tile-gold-bg);
+        color: var(--tile-gold-fg);
+      }
+      .row-actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .mini {
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid var(--surface-3);
+        background: var(--surface-2);
+        color: var(--text-soft);
+        border-radius: 7px;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+      .mini:hover {
+        background: var(--surface-3);
+        color: var(--text);
+      }
+      .mini.danger:hover {
+        background: rgba(255, 71, 87, 0.12);
+        color: var(--danger);
+        border-color: transparent;
+      }
+      .msg {
+        display: none;
+        font-size: 13px;
+        line-height: 1.5;
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 16px;
+      }
+      .msg.show {
+        display: block;
+      }
+      .msg.error {
+        background: rgba(255, 71, 87, 0.1);
+        color: var(--danger);
+      }
+      .msg.ok {
+        background: rgba(0, 184, 148, 0.12);
+        color: var(--success);
+      }
+      .msg code {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 14px;
+        font-weight: 700;
+        background: rgba(0, 0, 0, 0.07);
+        padding: 2px 7px;
+        border-radius: 5px;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      .empty {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 13.5px;
+        padding: 30px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="admin-shell">
+      <div class="admin-top">
+        <div class="admin-brand">
+          <div class="logo-mark"><i class="fas fa-user-shield"></i></div>
+          <div>
+            <h1>Enrolment Console</h1>
+            <p>Student Academic Progress Tracking System</p>
+          </div>
+        </div>
+        <div class="row-actions">
+          <button class="mini" id="openApp">
+            <i class="fas fa-gauge-high"></i> Open the system
+          </button>
+          <button class="mini danger" id="signOut">
+            <i class="fas fa-right-from-bracket"></i> Sign out
+          </button>
+        </div>
+      </div>
+
+      <div class="msg" id="msg" role="status"></div>
+
+      <div class="admin-grid">
+        <!-- ============ ENROL ============ -->
+        <div class="card">
+          <h3 class="card-title"><i class="fas fa-user-plus"></i> Enrol a student</h3>
+          <p class="muted" style="font-size: 12.5px; margin: 4px 0 16px; line-height: 1.5">
+            The system issues a temporary password. Give it to the student; they
+            must replace it the first time they sign in.
+          </p>
+          <form id="enrolForm">
+            <div class="form-group">
+              <label for="indexNumber">Index number</label>
+              <input id="indexNumber" required placeholder="e.g. 4211231161" />
+            </div>
+            <div class="form-group">
+              <label for="fullName">Full name</label>
+              <input id="fullName" required placeholder="e.g. Addo Foster Keteku" />
+            </div>
+            <div class="form-group">
+              <label for="email">Email (optional)</label>
+              <input id="email" type="email" placeholder="student@gctu.edu.gh" />
+            </div>
+            <button class="btn-submit" type="submit" style="width: 100%; justify-content: center">
+              <i class="fas fa-check"></i> Enrol student
+            </button>
+          </form>
+        </div>
+
+        <!-- ============ ROSTER ============ -->
+        <div class="card">
+          <h3 class="card-title">
+            <i class="fas fa-users"></i> Enrolled students
+            <span class="muted" id="count" style="font-weight: 400; font-size: 13px"></span>
+          </h3>
+          <div class="table-wrap">
+            <table class="roster">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Status</th>
+                  <th>Courses</th>
+                  <th>Last signed in</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="roster">
+                <tr>
+                  <td colspan="5" class="empty">Loading…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) =>
+        String(s ?? "").replace(
+          /[&<>"']/g,
+          (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+        );
+
+      function message(html, kind = "error") {
+        const el = $("msg");
+        el.innerHTML = html;
+        el.className = "msg" + (html ? " show " + kind : "");
+        if (html) window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      $("signOut").onclick = () => Auth.logout();
+      $("openApp").onclick = () => (location.href = "index.html");
+
+      async function refresh() {
+        const { students } = await Auth.get("api/admin/students.php");
+        const body = $("roster");
+        const learners = students.filter((s) => s.role === "student");
+        $("count").textContent = learners.length ? `— ${learners.length} enrolled` : "";
+
+        if (!students.length) {
+          body.innerHTML = '<tr><td colspan="5" class="empty">Nobody is enrolled yet.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = students
+          .map((s) => {
+            const isAdmin = s.role === "admin";
+            const status = isAdmin
+              ? '<span class="chip admin">Administrator</span>'
+              : s.status === "active"
+                ? Number(s.mustChangePassword)
+                  ? '<span class="chip pending">Awaiting first sign-in</span>'
+                  : '<span class="chip active">Active</span>'
+                : '<span class="chip inactive">Deactivated</span>';
+            const actions = isAdmin
+              ? '<span class="idx">—</span>'
+              : `<div class="row-actions">
+                   <button class="mini" data-act="reset" data-id="${s.id}">Reset password</button>
+                   <button class="mini" data-act="status" data-id="${s.id}"
+                           data-status="${s.status === "active" ? "inactive" : "active"}">
+                     ${s.status === "active" ? "Deactivate" : "Reactivate"}
+                   </button>
+                   <button class="mini danger" data-act="delete" data-id="${s.id}"
+                           data-name="${esc(s.fullName)}">Remove</button>
+                 </div>`;
+            return `<tr>
+              <td><div class="who">${esc(s.fullName)}</div>
+                  <div class="idx">${esc(s.indexNumber)}${s.email ? " · " + esc(s.email) : ""}</div></td>
+              <td>${status}</td>
+              <td>${isAdmin ? "—" : s.courseCount}</td>
+              <td class="idx">${s.lastLogin ? esc(s.lastLogin) : "Never"}</td>
+              <td>${actions}</td>
+            </tr>`;
+          })
+          .join("");
+      }
+
+      $("enrolForm").onsubmit = async (e) => {
+        e.preventDefault();
+        message("");
+        try {
+          const r = await Auth.post("api/admin/students.php", {
+            action: "enrol",
+            indexNumber: $("indexNumber").value.trim(),
+            fullName: $("fullName").value.trim(),
+            email: $("email").value.trim(),
+          });
+          message(
+            `Enrolled <strong>${esc(r.indexNumber)}</strong>. Temporary password: ` +
+              `<code>${esc(r.temporaryPassword)}</code> — give this to the student. ` +
+              `It is shown once and cannot be retrieved later.`,
+            "ok",
+          );
+          e.target.reset();
+          await refresh();
+        } catch (err) {
+          message(esc(err.message));
+        }
+      };
+
+      $("roster").onclick = async (e) => {
+        const btn = e.target.closest("button[data-act]");
+        if (!btn) return;
+        const { act, id, status, name } = btn.dataset;
+        try {
+          if (act === "reset") {
+            const r = await Auth.post("api/admin/students.php", { action: "reset", id: Number(id) });
+            message(
+              `New temporary password: <code>${esc(r.temporaryPassword)}</code> — ` +
+                `the student must change it at their next sign-in.`,
+              "ok",
+            );
+          } else if (act === "status") {
+            await Auth.post("api/admin/students.php", { action: "status", id: Number(id), status });
+            message(`Account ${status === "active" ? "reactivated" : "deactivated"}.`, "ok");
+          } else if (act === "delete") {
+            if (
+              !confirm(
+                `Remove ${name}?\n\nTheir courses, marks, study sessions, tasks and notes are deleted with the account. This cannot be undone.`,
+              )
+            )
+              return;
+            await Auth.post("api/admin/students.php", { action: "delete", id: Number(id) });
+            message("The account and all of its records were removed.", "ok");
+          }
+          await refresh();
+        } catch (err) {
+          message(esc(err.message));
+        }
+      };
+
+      Auth.requireUser("admin").then(refresh).catch((err) => message(esc(err.message)));
+    </script>
+  </body>
+</html>

@@ -2175,3 +2175,34 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Server sync indicator ---------- */
+.sync-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+
+.sync-state[data-state="saved"] {
+  background: var(--tile-green-bg);
+  color: var(--success);
+}
+
+.sync-state[data-state="error"] {
+  background: rgba(255, 71, 87, 0.12);
+  color: var(--danger);
+}
+
+@media (max-width: 768px) {
+  .sync-state {
+    display: none;
+  }
+}

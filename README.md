@@ -1,8 +1,10 @@
 # 🎓 Student Academic Progress Tracking System (SAPTS)
 
 A **web-based student academic progress tracking system** that helps students
-track courses, grades, study habits and revision — built with plain HTML5, CSS3
-and vanilla JavaScript, and hosted locally on the **XAMPP** Apache server.
+track courses, grades, study habits and revision. Built with HTML5, CSS3 and
+vanilla JavaScript on the client, PHP and MySQL on the server, and hosted locally
+on **XAMPP**. Each student signs in to their own account; an administrator
+enrols them.
 
 Ghana Communication Technology University (GCTU) — Faculty of Computing and
 Information Systems.
@@ -14,15 +16,26 @@ Information Systems.
    - Windows — `C:\xampp\htdocs\sapts`
    - macOS — `/Applications/XAMPP/htdocs/sapts`
    - Linux — `/opt/lampp/htdocs/sapts`
-3. Open the **XAMPP Control Panel** and press **Start** next to **Apache**.
-   (MySQL is optional — the application stores its data in the browser. Start it
-   only if you want to load the relational schema described below.)
-4. Visit <http://localhost/sapts/> in Chrome, Edge or Firefox.
+3. Open the **XAMPP Control Panel** and press **Start** next to **Apache** and
+   next to **MySQL**. Both are required.
+4. Import the database: open <http://localhost/phpmyadmin> → **Import** →
+   `database/sapts_schema.sql` → **Go**.
+5. Visit <http://localhost/sapts/> in Chrome, Edge or Firefox and sign in.
 
-The application is entirely client-side, so Apache only has to serve the files.
+### Accounts created by the schema
+
+| Role | Index number | Password |
+| --- | --- | --- |
+| Administrator | `ADMIN001` | `password123` |
+| Student | `4211231018` | `password123` |
+
+Change both immediately after the first sign-in — they are published here and in
+the SQL file, so they are not secret.
+
 No internet connection is needed at any point — fonts, icons and the chart
-library are bundled in `vendor/`. See [`docs/XAMPP_SETUP.md`](docs/XAMPP_SETUP.md)
-for a step-by-step guide with troubleshooting.
+library are bundled in `vendor/`, and the server is the same machine. See
+[`docs/XAMPP_SETUP.md`](docs/XAMPP_SETUP.md) for a step-by-step guide with
+troubleshooting and the enrolment walkthrough.
 
 ## Features
 
@@ -36,18 +49,23 @@ for a step-by-step guide with troubleshooting.
 | **My Vault** | Write text notes or store images/PDFs (past questions) privately in IndexedDB |
 | **Goals & Tasks** | Tasks grouped by Overdue / Due Today / Upcoming, priorities, progress bar |
 | **Settings** | Profile, theme (light/dark), timer lengths, JSON backup export/import, demo data |
+| **Enrolment console** | Administrators enrol students, issue and reset temporary passwords, deactivate or remove accounts |
 
 ## Project structure
 
 ```
 sapts/
-├── index.html        # Single-page application markup
+├── index.html        # The application (requires a signed-in user)
+├── login.html        # Sign in, self-enrolment, first-password change
+├── admin.html        # Administrator enrolment console
 ├── style.css         # Theme system (CSS variables) + all component styles
-├── script.js         # Application logic (storage, router, charts, timer…)
+├── script.js         # Application logic (router, charts, timer, server sync)
+├── auth.js           # Session handling and the page guard
+├── api/              # PHP endpoints: login, logout, register, data, admin
+├── database/         # MySQL schema, views and seed data
 ├── .htaccess         # Apache configuration used by XAMPP
-├── database/         # MySQL schema expressing the same data model in SQL
 ├── vendor/           # Bundled Chart.js, Font Awesome, Poppins fonts (offline)
-├── docs/             # Project report, defense slides, screenshots, XAMPP guide
+├── docs/             # Project report, defence slides, screenshots, XAMPP guide
 └── backup_original/  # The previous version of the app, kept for reference
 ```
 
@@ -57,28 +75,30 @@ Three-tier, entirely on the client:
 
 | Tier | Technology |
 | --- | --- |
-| Presentation | HTML5, CSS3 (responsive layout with Grid/Flexbox) |
-| Application logic | Vanilla JavaScript (ES6+), Chart.js for visualisation |
-| Data | Web Storage API (structured records) + IndexedDB (uploaded files) |
+| Presentation | HTML5, CSS3 (responsive layout with Grid/Flexbox), in the browser |
+| Application logic | JavaScript (ES6+) in the browser; PHP 8 on the server for authentication and persistence |
+| Data | MySQL — eight tables with primary keys, foreign keys and check constraints |
 
-Apache, provided by XAMPP, acts as the local web server that delivers these
-files to the browser.
+Local storage is kept as a working cache: a student's rows are copied into it at
+sign-in so the interface stays responsive, and every change is written back to
+MySQL. The database is the authoritative copy.
 
-### The relational schema
+### Security
 
-`database/sapts_schema.sql` expresses the same data model in SQL: eight tables
-with primary keys, foreign keys and check constraints, plus four views that
-reproduce the weighted average, letter grade, GPA and study-hour calculations
-the application performs in JavaScript. Import it through phpMyAdmin (start
-MySQL in XAMPP first) or with `mysql -u root -p < database/sapts_schema.sql`.
-The application does not read from it — it documents the design formally and is
-the migration path to a shared, multi-user deployment. See
-[`docs/XAMPP_SETUP.md`](docs/XAMPP_SETUP.md) section 6.
+- Passwords are stored as bcrypt hashes (`password_hash`, cost 12) and never in
+  readable form.
+- Sessions use an HttpOnly, SameSite=Lax cookie; the identifier is regenerated on
+  sign-in and on password change.
+- Every write carries a CSRF token.
+- Every query is filtered by the `user_id` held in the session, never by one sent
+  in the request, so no student can read or alter another's records.
+- Administrator routes are behind a role check that returns 403 to students.
 
 ## Notes
 
-- First launch seeds demo data; use **Settings → Reset All Data** to start clean.
+- A newly enrolled student starts with an empty system; **Settings → Load Demo
+  Data** fills it with sample records for demonstration.
 - Backups (Settings → Export) contain all structured data; uploaded binary files
   stay in the browser's IndexedDB and are not included in the JSON file.
-- Data saved by earlier versions of the application is migrated automatically on
-  first run.
+- A student signing in with an administrator-issued temporary password must
+  choose their own before reaching the system.

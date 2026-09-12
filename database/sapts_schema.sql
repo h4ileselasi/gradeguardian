@@ -5,7 +5,8 @@
 --  Ghana Communication Technology University (GCTU)
 --  Faculty of Computing and Information Systems
 --
---  This script creates the database described by the entity relationship
+--  This script creates the database used by the system: user accounts with
+--  hashed passwords and roles, and the academic tables described by the entity relationship
 --  diagram in Figure 3.4 of the project report. The delivered system
 --  persists these same entities on the client, through the Web Storage
 --  API and IndexedDB; this schema expresses that identical model in SQL
@@ -28,14 +29,21 @@ USE sapts;
 -- ---------------------------------------------------------------------
 CREATE TABLE user (
   user_id       INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  index_number  VARCHAR(20)     NOT NULL  COMMENT 'student index number; the login identifier',
   full_name     VARCHAR(120)    NOT NULL,
   email         VARCHAR(160)        NULL,
+  password_hash VARCHAR(255)    NOT NULL  COMMENT 'bcrypt hash from PHP password_hash(); never a plain password',
+  role          ENUM('student','admin') NOT NULL DEFAULT 'student',
+  status        ENUM('active','inactive') NOT NULL DEFAULT 'active',
+  must_change_password TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'set when an admin enrols a student with a temporary password',
   theme         ENUM('light','dark') NOT NULL DEFAULT 'light',
   weekly_goal   TINYINT UNSIGNED NOT NULL DEFAULT 10  COMMENT 'target study hours per week',
   focus_len     TINYINT UNSIGNED NOT NULL DEFAULT 25  COMMENT 'pomodoro focus minutes',
   break_len     TINYINT UNSIGNED NOT NULL DEFAULT 5   COMMENT 'pomodoro break minutes',
+  last_login    DATETIME            NULL,
   created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (user_id),
+  UNIQUE KEY uq_user_index (index_number),
   UNIQUE KEY uq_user_email (email)
 ) ENGINE=InnoDB;
 
@@ -269,8 +277,15 @@ GROUP BY s.user_id, s.course_id, c.code;
 --  application, so the views can be shown returning real figures.
 -- =====================================================================
 
-INSERT INTO user (user_id, full_name, email, theme, weekly_goal)
-VALUES (1, 'Richard Yawlui', 'richard.yawlui@gctu.edu.gh', 'light', 10);
+-- Two accounts are seeded: an administrator who enrols students, and one
+-- student. Both passwords are 'password123'; the stored value is a bcrypt hash,
+-- so the plain password appears nowhere in the database. Change them after the
+-- first login.
+INSERT INTO user (user_id, index_number, full_name, email, password_hash, role, theme, weekly_goal) VALUES
+  (1, '4211231018', 'Richard Yawlui', 'richard.yawlui@gctu.edu.gh',
+   '$2y$12$1MJWUJHTjTL.M6wHfCMaAOuNcM5EpErfUGRGtqXc3MqDtKWD9r.ja', 'student', 'light', 10),
+  (2, 'ADMIN001',   'System Administrator', 'admin@gctu.edu.gh',
+   '$2y$12$1MJWUJHTjTL.M6wHfCMaAOuNcM5EpErfUGRGtqXc3MqDtKWD9r.ja', 'admin', 'light', 10);
 
 INSERT INTO course (course_id, user_id, code, name, credit_hours, lecturer, semester) VALUES
   (1, 1, 'CSCD 301', 'Web Development',      3, 'Dr. Mensah',  'Semester 1'),

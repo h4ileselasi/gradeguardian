@@ -4,18 +4,18 @@
 Ghana Communication Technology University — Faculty of Computing and Information Systems
 
 This guide describes how to host the system on a local Apache server supplied by
-XAMPP. The system is delivered as a local web application: no online hosting
-provider and no external database server are involved.
+XAMPP. The system is delivered as a local web application: Apache serves the
+pages and runs the PHP, MySQL holds the accounts and academic records, and no
+online hosting provider is involved at any point.
 
 ---
 
 ## 1. Install XAMPP
 
 Download XAMPP from <https://www.apachefriends.org> and run the installer.
-The **Apache** component is required. Select **MySQL** as well if you intend to
-load the relational schema described in section 6 — the application itself does
-not need it, because it stores its data inside the browser. FileZilla, Mercury
-and Tomcat can be left unselected.
+Both the **Apache** and the **MySQL** components are required: Apache serves the
+pages and runs the PHP that handles sign-in, and MySQL holds the accounts and the
+academic records. FileZilla, Mercury and Tomcat can be left unselected.
 
 ## 2. Copy the project into the web root
 
@@ -28,15 +28,31 @@ folder into it and name the copy `sapts`:
 | macOS | `/Applications/XAMPP/htdocs/sapts` |
 | Linux | `/opt/lampp/htdocs/sapts` |
 
-After copying, the folder should contain `index.html`, `style.css`, `script.js`,
-`.htaccess` and the `vendor` folder.
+After copying, the folder should contain `index.html`, `login.html`,
+`admin.html`, `style.css`, `script.js`, `auth.js`, `.htaccess`, and the `api`,
+`database` and `vendor` folders.
 
-## 3. Start Apache
+## 3. Start Apache and MySQL
 
-Open the **XAMPP Control Panel** and click **Start** on the Apache row. The row
-turns green and reports the ports in use (80 and 443 by default).
+Open the **XAMPP Control Panel** and click **Start** on the **Apache** row and on
+the **MySQL** row. Both turn green. The system needs both: without MySQL nobody
+can sign in.
 
-## 4. Open the system
+## 4. Create the database
+
+Open <http://localhost/phpmyadmin>, choose the **Import** tab, select
+`database/sapts_schema.sql` from the project folder, and press **Go**. This
+creates the `sapts` database, its eight tables and two accounts:
+
+| Sign in as | Index number | Password |
+| --- | --- | --- |
+| Administrator | `ADMIN001` | `password123` |
+| Student | `4211231018` | `password123` |
+
+**Change both passwords immediately after the first sign-in.** They are published
+here and in the SQL file, so they are not secret.
+
+## 5. Open the system
 
 In a browser, visit:
 
@@ -44,27 +60,38 @@ In a browser, visit:
 http://localhost/sapts/
 ```
 
-The dashboard loads and the system is ready to use. On a first run it seeds
-sample data so that the charts and lists are populated for demonstration; this
-can be cleared from **Settings → Reset All Data**.
+The sign-in page appears. Sign in with one of the accounts above. A student
+lands on their dashboard; the administrator lands on the enrolment console.
+
+## 6. Enrol students
+
+Sign in as the administrator. The **Enrolment Console** opens at
+<http://localhost/sapts/admin.html> and lets you:
+
+- **Enrol a student** — enter their index number and full name. The system
+  generates a temporary password and shows it once. Give it to the student.
+- **Reset a password** — issues a fresh temporary password if one is forgotten.
+- **Deactivate or reactivate** an account, without deleting anything.
+- **Remove** an account, which deletes that student's records with it.
+
+A student signing in with a temporary password must choose their own before they
+can reach the system. Students may also create their own account from the
+**Create account** tab on the sign-in page, if your department allows it.
+
+Each student sees only their own courses, marks, study sessions, tasks and notes.
+The records are separated in the database by the account that owns them.
 
 ---
 
 ## 6. Optional: loading the relational schema
 
-The project ships `database/sapts_schema.sql`, which expresses the same data
-model as SQL. The running application does not use it; it exists so that the
-design can be inspected in a relational database and so the system can later be
-extended to serve several students from one server.
+Everything the system stores can be inspected in phpMyAdmin. Open the `sapts`
+database and look at the `user` table: the `password_hash` column holds bcrypt
+hashes, never the passwords themselves. The academic tables each carry a
+`user_id` identifying the student the row belongs to.
 
-1. Start **MySQL** from the XAMPP Control Panel, alongside Apache.
-2. Open <http://localhost/phpmyadmin>.
-3. Choose the **Import** tab, select `database/sapts_schema.sql`, and press **Go**.
-
-The script creates a database named `sapts` containing eight tables, and it
-loads sample data matching the figures the application shows. Four views
-reproduce the calculations the application performs in JavaScript. To confirm
-the import, open the **SQL** tab and run:
+Four views reproduce in SQL the calculations the interface performs in
+JavaScript. To see them, open the **SQL** tab and run:
 
 ```sql
 USE sapts;
@@ -77,23 +104,23 @@ The first query returns the five seeded courses with marks of 85, 78, 72, 66 and
 58, and the second returns a grade point average of **2.89** across 14 credit
 hours — the same figures shown on the application's dashboard.
 
-Alternatively, from a terminal:
-
-```
-mysql -u root -p < database/sapts_schema.sql
-```
+Re-importing the schema file at any time resets the database to its initial
+state, removing every account and record created since.
 
 ---
 
 ## Demonstrating the system on the defence day
 
-1. Start Apache from the XAMPP Control Panel **before** the session begins.
-2. Open `http://localhost/sapts/` and confirm the dashboard renders.
-3. Disconnect from the internet if asked to prove the system runs offline — every
-   asset (fonts, icons, Chart.js) is bundled inside `vendor/`, so the system
-   continues to work.
-4. Keep a JSON backup (**Settings → Export Backup**) on the same machine so the
-   demonstration data can be restored instantly if anything is cleared.
+1. Start **Apache and MySQL** from the XAMPP Control Panel before the session begins.
+2. Open `http://localhost/sapts/` and confirm the sign-in page appears.
+3. Sign in as the administrator and enrol a student live; show the temporary
+   password being issued.
+4. Sign in as that student in a private window, change the password when prompted,
+   and show that their dashboard is empty — they cannot see anybody else's marks.
+5. Open phpMyAdmin alongside and show the new row in the `user` table, with a
+   bcrypt hash in `password_hash` rather than a readable password.
+6. Disconnect from the internet if asked: every asset is bundled in `vendor/`, and
+   the server is your own machine, so nothing depends on an outside connection.
 
 ## Troubleshooting
 
@@ -112,10 +139,17 @@ whole `vendor` folder sit beside `index.html`.
 The folder name in `htdocs` does not match the address being typed, or
 `index.html` is missing from it. Check the spelling of the folder in the URL.
 
-**Data disappeared between sessions**
-The browser's site data was cleared, or the system was opened from a different
-browser or in a private window. Data is stored per browser, per origin. Restore
-from a JSON backup via **Settings → Import Backup**.
+**"The system cannot reach your records"**
+MySQL is not running, or the database has not been imported. Start MySQL in the
+XAMPP Control Panel and complete step 4.
+
+**A student has forgotten their password**
+Sign in as the administrator, find them in the enrolment console and press
+**Reset password**. A new temporary password is displayed once.
+
+**Nobody can sign in at all**
+Confirm the `sapts` database exists in phpMyAdmin and that its `user` table has
+rows. If it is empty, import `database/sapts_schema.sql` again.
 
 **Changes to the files are not visible**
 Refresh with `Ctrl + F5` to bypass the browser cache. The bundled `.htaccess`
@@ -123,15 +157,10 @@ already instructs Apache to send `no-cache` for HTML, CSS and JavaScript.
 
 ---
 
-## Why a local server rather than opening the file directly
+## Why the files cannot simply be opened directly
 
-The system can technically be opened by double-clicking `index.html`, but serving
-it through Apache is the correct arrangement for three reasons:
-
-1. It reproduces a real deployment: the browser requests the application over
-   HTTP from a web server, exactly as it would in production.
-2. Browsers apply their normal origin rules to `http://localhost`, so storage
-   behaves consistently, whereas `file://` pages are treated as opaque origins by
-   some browsers.
-3. The `.htaccess` configuration — MIME types, security headers and cache
-   control — is only applied when Apache serves the files.
+Opening `index.html` by double-clicking it no longer works, and this is expected.
+The sign-in, enrolment and record-keeping are handled by PHP running on the
+server; a page opened from the file system has no server to talk to, so it cannot
+authenticate anybody. The system must be reached through
+`http://localhost/sapts/` with Apache and MySQL running.

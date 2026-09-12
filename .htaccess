@@ -1,8 +1,8 @@
 # Student Academic Progress Tracking System (SAPTS)
 # Apache configuration for local hosting under XAMPP.
 
-# Serve index.html when the folder is requested directly.
-DirectoryIndex index.html
+# The sign-in page is the entry point; index.html redirects there anyway.
+DirectoryIndex index.html login.html
 
 # Basic hardening — mirrors what a production host would send.
 <IfModule mod_headers.c>
@@ -27,9 +27,23 @@ DirectoryIndex index.html
   </FilesMatch>
 </IfModule>
 
-# Never expose the project's version-control or documentation folders.
+# Never expose dotfiles, and never serve the SQL schema over HTTP: it contains
+# the seeded password hashes and the table structure.
 <IfModule mod_authz_core.c>
   <FilesMatch "^\.">
     Require all denied
   </FilesMatch>
+  <FilesMatch "\.(sql|md)$">
+    Require all denied
+  </FilesMatch>
 </IfModule>
+
+# PHP must never be served as plain text, whatever the server configuration.
+<IfModule mod_php.c>
+  php_flag display_errors Off
+</IfModule>
+<FilesMatch "\.php$">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "no-store"
+  </IfModule>
+</FilesMatch>

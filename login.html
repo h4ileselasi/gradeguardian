@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Sign In — Student Academic Progress Tracking System</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>"
+    />
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .auth-wrap {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px 16px;
+        background: var(--bg);
+      }
+      .auth-card {
+        width: 100%;
+        max-width: 430px;
+        background: var(--surface);
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 32px 30px 28px;
+      }
+      .auth-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 6px;
+      }
+      .auth-head .logo-mark {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: var(--primary);
+        color: #fff;
+        font-size: 20px;
+        flex-shrink: 0;
+      }
+      .auth-head h1 {
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: var(--primary);
+      }
+      .auth-head p {
+        font-size: 11px;
+        line-height: 1.35;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+      .auth-sub {
+        font-size: 13px;
+        color: var(--text-soft);
+        margin: 14px 0 20px;
+      }
+      .tabs {
+        display: flex;
+        gap: 6px;
+        background: var(--surface-3);
+        border-radius: var(--radius-sm);
+        padding: 4px;
+        margin-bottom: 22px;
+      }
+      .tabs button {
+        flex: 1;
+        padding: 9px 8px;
+        border: none;
+        border-radius: 7px;
+        background: transparent;
+        color: var(--text-soft);
+        font: inherit;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+      .tabs button[aria-selected="true"] {
+        background: var(--surface);
+        color: var(--primary);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      }
+      .auth-card .form-group {
+        margin-bottom: 14px;
+      }
+      .auth-card label {
+        display: block;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--text-soft);
+        margin-bottom: 5px;
+      }
+      .auth-card input {
+        width: 100%;
+        padding: 11px 13px;
+        font: inherit;
+        font-size: 14px;
+        color: var(--text);
+        background: var(--surface-2);
+        border: 1px solid var(--surface-3);
+        border-radius: var(--radius-sm);
+        transition: var(--transition);
+      }
+      .auth-card input:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: var(--surface);
+      }
+      .auth-card .btn-submit {
+        width: 100%;
+        justify-content: center;
+        margin-top: 6px;
+      }
+      .msg {
+        display: none;
+        font-size: 13px;
+        line-height: 1.45;
+        padding: 11px 13px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 16px;
+      }
+      .msg.show {
+        display: block;
+      }
+      .msg.error {
+        background: rgba(255, 71, 87, 0.1);
+        color: var(--danger);
+      }
+      .msg.ok {
+        background: rgba(0, 184, 148, 0.12);
+        color: var(--success);
+      }
+      .hint {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 16px;
+        text-align: center;
+        line-height: 1.5;
+      }
+      .panel[hidden] {
+        display: none;
+      }
+      .field-note {
+        font-size: 11.5px;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <div class="auth-head">
+          <div class="logo-mark"><i class="fas fa-graduation-cap"></i></div>
+          <div>
+            <h1>SAPTS</h1>
+            <p>Student Academic Progress Tracking System</p>
+          </div>
+        </div>
+
+        <p class="auth-sub" id="authSub">
+          Sign in with the index number your department enrolled you under.
+        </p>
+
+        <div class="msg" id="msg" role="alert"></div>
+
+        <!-- Tabs are hidden while a first password is being set. -->
+        <div class="tabs" id="tabs" role="tablist">
+          <button id="tabSignIn" role="tab" aria-selected="true">Sign in</button>
+          <button id="tabRegister" role="tab" aria-selected="false">Create account</button>
+        </div>
+
+        <!-- ============ SIGN IN ============ -->
+        <form class="panel" id="panelSignIn">
+          <div class="form-group">
+            <label for="identity">Index number or email</label>
+            <input id="identity" name="identity" autocomplete="username" required />
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" type="password" autocomplete="current-password" required />
+          </div>
+          <button class="btn-submit" type="submit">
+            <i class="fas fa-right-to-bracket"></i> Sign in
+          </button>
+        </form>
+
+        <!-- ============ SELF-ENROLMENT ============ -->
+        <form class="panel" id="panelRegister" hidden>
+          <div class="form-group">
+            <label for="regIndex">Index number</label>
+            <input id="regIndex" required placeholder="e.g. 4211231018" />
+            <p class="field-note">Letters, digits and hyphens only.</p>
+          </div>
+          <div class="form-group">
+            <label for="regName">Full name</label>
+            <input id="regName" required placeholder="e.g. Richard Yawlui" />
+          </div>
+          <div class="form-group">
+            <label for="regEmail">Email (optional)</label>
+            <input id="regEmail" type="email" placeholder="student@gctu.edu.gh" />
+          </div>
+          <div class="form-group">
+            <label for="regPassword">Password</label>
+            <input id="regPassword" type="password" autocomplete="new-password" required />
+            <p class="field-note">At least 8 characters.</p>
+          </div>
+          <button class="btn-submit" type="submit">
+            <i class="fas fa-user-plus"></i> Create my account
+          </button>
+        </form>
+
+        <!-- ============ FORCED PASSWORD CHANGE ============ -->
+        <form class="panel" id="panelChange" hidden>
+          <div class="form-group">
+            <label for="newPassword">Choose a new password</label>
+            <input id="newPassword" type="password" autocomplete="new-password" required />
+            <p class="field-note">At least 8 characters.</p>
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirm new password</label>
+            <input id="confirmPassword" type="password" autocomplete="new-password" required />
+          </div>
+          <button class="btn-submit" type="submit">
+            <i class="fas fa-key"></i> Set password and continue
+          </button>
+        </form>
+
+        <p class="hint" id="hint">
+          Forgotten your password? Your department administrator can issue a new one.
+        </p>
+      </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const panels = { signIn: $("panelSignIn"), register: $("panelRegister"), change: $("panelChange") };
+
+      function show(name) {
+        Object.entries(panels).forEach(([k, el]) => (el.hidden = k !== name));
+        $("tabs").hidden = name === "change";
+        $("hint").hidden = name === "change";
+        $("tabSignIn").setAttribute("aria-selected", String(name === "signIn"));
+        $("tabRegister").setAttribute("aria-selected", String(name === "register"));
+        $("authSub").textContent =
+          name === "change"
+            ? "This account is using a temporary password. Choose your own before continuing."
+            : name === "register"
+              ? "Create your own account if your department has not enrolled you."
+              : "Sign in with the index number your department enrolled you under.";
+        message("");
+      }
+
+      function message(text, kind = "error") {
+        const el = $("msg");
+        el.textContent = text;
+        el.className = "msg" + (text ? " show " + kind : "");
+      }
+
+      $("tabSignIn").onclick = () => show("signIn");
+      $("tabRegister").onclick = () => show("register");
+
+      /* Somebody already signed in has no business here. */
+      Auth.me().then((s) => {
+        if (s.authenticated) {
+          if (s.user.mustChangePassword) show("change");
+          else location.replace(s.user.role === "admin" ? "admin.html" : "index.html");
+        }
+      });
+
+      function land(user) {
+        location.replace(user.role === "admin" ? "admin.html" : "index.html");
+      }
+
+      panels.signIn.onsubmit = async (e) => {
+        e.preventDefault();
+        message("");
+        try {
+          const r = await Auth.post("api/login.php", {
+            identity: $("identity").value.trim(),
+            password: $("password").value,
+          });
+          if (r.user.mustChangePassword) {
+            show("change");
+            message("Temporary password accepted. Now choose your own.", "ok");
+          } else land(r.user);
+        } catch (err) {
+          message(err.message);
+        }
+      };
+
+      panels.register.onsubmit = async (e) => {
+        e.preventDefault();
+        message("");
+        try {
+          const r = await Auth.post("api/register.php", {
+            indexNumber: $("regIndex").value.trim(),
+            fullName: $("regName").value.trim(),
+            email: $("regEmail").value.trim(),
+            password: $("regPassword").value,
+          });
+          land(r.user);
+        } catch (err) {
+          message(err.message);
+        }
+      };
+
+      panels.change.onsubmit = async (e) => {
+        e.preventDefault();
+        message("");
+        if ($("newPassword").value !== $("confirmPassword").value) {
+          return message("The two passwords do not match.");
+        }
+        try {
+          await Auth.post("api/change_password.php", {
+            currentPassword: "",
+            newPassword: $("newPassword").value,
+          });
+          const s = await Auth.me();
+          land(s.user);
+        } catch (err) {
+          message(err.message);
+        }
+      };
+    </script>
+  </body>
+</html>
