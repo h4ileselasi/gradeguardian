@@ -278,6 +278,7 @@ body {
 /* ============ MAIN ============ */
 .main-content {
   flex: 1;
+  min-width: 0; /* allow the column to shrink instead of forcing the page wider */
   margin-left: var(--sidebar-width);
   padding: 20px 30px 50px;
 }
@@ -290,6 +291,7 @@ body {
   padding: 12px 0;
   margin-bottom: 22px;
   gap: 16px;
+  min-width: 0;
 }
 
 .search-bar {
@@ -300,6 +302,7 @@ body {
   border-radius: 30px;
   width: 360px;
   max-width: 60vw;
+  min-width: 0;
   box-shadow: var(--shadow);
   border: 1px solid var(--card-border);
   position: relative;
@@ -314,6 +317,7 @@ body {
   border: none;
   outline: none;
   width: 100%;
+  min-width: 0;
   font-size: 14px;
   background: transparent;
   color: var(--text);
@@ -1684,6 +1688,7 @@ body {
 
 /* ---------- Grade table ---------- */
 .grade-table {
+  /* A table is the one thing that should scroll rather than be squashed. */
   width: 100%;
   border-collapse: collapse;
 }
@@ -2115,6 +2120,30 @@ body {
 }
 
 @media (max-width: 768px) {
+  /* The header carries a search field and four controls; below this width they
+     no longer fit on one row, so the search drops to a row of its own. */
+  .header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .header-icons {
+    order: 1;
+    margin-left: auto;
+    gap: 8px;
+  }
+
+  .search-bar {
+    order: 2;
+    width: 100%;
+    max-width: none;
+  }
+
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+
   .sidebar {
     width: 68px;
   }
@@ -2204,5 +2233,57 @@ body {
 @media (max-width: 768px) {
   .sync-state {
     display: none;
+  }
+}
+
+/* ---------- Narrow-viewport shrinking ----------
+   Grid and flex children default to min-width:auto, so a chart canvas or a row
+   of buttons sets a floor the column cannot go below and the page scrolls
+   sideways. Letting these shrink keeps every view within the viewport. */
+.charts-row > *,
+.content-grid > *,
+.study-container > *,
+.settings-container > *,
+.courses-list > *,
+.vault-grid > * {
+  min-width: 0;
+}
+
+.chart-box {
+  min-width: 0;
+}
+
+.chart-box canvas {
+  max-width: 100%;
+}
+
+@media (max-width: 560px) {
+  /* Course rows put details and controls side by side; below this width the
+     controls move under the details rather than pushing the row wider. */
+  .course-item {
+    flex-wrap: wrap;
+  }
+
+  .course-actions {
+    margin-left: auto;
+  }
+
+  .timer-container {
+    max-width: 100%;
+  }
+}
+
+/* A table is allowed to be wider than a phone; it scrolls inside its own card
+   rather than widening the page. */
+.grade-table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+@media (min-width: 700px) {
+  .grade-table {
+    display: table;
+    white-space: normal;
   }
 }

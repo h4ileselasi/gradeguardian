@@ -287,12 +287,14 @@ INSERT INTO user (user_id, index_number, full_name, email, password_hash, role, 
   (2, 'ADMIN001',   'System Administrator', 'admin@gctu.edu.gh',
    '$2y$12$1MJWUJHTjTL.M6wHfCMaAOuNcM5EpErfUGRGtqXc3MqDtKWD9r.ja', 'admin', 'light', 10);
 
-INSERT INTO course (course_id, user_id, code, name, credit_hours, lecturer, semester) VALUES
-  (1, 1, 'CSCD 301', 'Web Development',      3, 'Dr. Mensah',  'Semester 1'),
-  (2, 1, 'CSCD 302', 'Database Systems',     3, 'Prof. Asare', 'Semester 1'),
-  (3, 1, 'CSCD 303', 'Network Security',     2, 'Dr. Owusu',   'Semester 1'),
-  (4, 1, 'CSCD 304', 'Software Engineering', 3, 'Dr. Boateng', 'Semester 1'),
-  (5, 1, 'CSCD 305', 'Operating Systems',    3, 'Prof. Adjei', 'Semester 1');
+-- score and grade hold the rolled-up mark the interface displays; the
+-- assessment rows below are the components that produce it.
+INSERT INTO course (course_id, user_id, code, name, credit_hours, lecturer, semester, score, grade) VALUES
+  (1, 1, 'CSCD 301', 'Web Development',      3, 'Dr. Mensah',  'Semester 1', 85.00, 'A'),
+  (2, 1, 'CSCD 302', 'Database Systems',     3, 'Prof. Asare', 'Semester 1', 78.00, 'B+'),
+  (3, 1, 'CSCD 303', 'Network Security',     2, 'Dr. Owusu',   'Semester 1', 72.00, 'B'),
+  (4, 1, 'CSCD 304', 'Software Engineering', 3, 'Dr. Boateng', 'Semester 1', 66.00, 'C+'),
+  (5, 1, 'CSCD 305', 'Operating Systems',    3, 'Prof. Adjei', 'Semester 1', 58.00, 'D+');
 
 -- Components chosen so that each course totals the mark the application
 -- seeds for it: 85, 78, 72, 66 and 58 respectively.

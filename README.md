@@ -65,7 +65,8 @@ sapts/
 ├── database/         # MySQL schema, views and seed data
 ├── .htaccess         # Apache configuration used by XAMPP
 ├── vendor/           # Bundled Chart.js, Font Awesome, Poppins fonts (offline)
-├── docs/             # Project report, defence slides, screenshots, XAMPP guide
+├── docs/             # Project report, defence deck, screenshots, XAMPP guide
+│   └── report-src/   # Sources the report and its test suite are built from
 └── backup_original/  # The previous version of the app, kept for reference
 ```
 
@@ -102,3 +103,26 @@ MySQL. The database is the authoritative copy.
   stay in the browser's IndexedDB and are not included in the JSON file.
 - A student signing in with an administrator-issued temporary password must
   choose their own before reaching the system.
+- The interface is verified free of horizontal overflow at 375 px, 768 px and
+  1366 px across all eight views.
+
+## Testing
+
+`docs/report-src/testsuite.mjs` runs 28 cases against a live installation —
+authentication, authorisation, CSRF, validation, record separation, GPA
+calculation, persistence, responsive layout and stored cross-site scripting. It
+drives both the PHP endpoints directly and the interface through a real browser,
+and prints a pass/fail table. Start Apache and MySQL, then:
+
+```
+node docs/report-src/testsuite.mjs
+```
+
+## Documentation
+
+| Document | What it is |
+| --- | --- |
+| `docs/SAPTS_Project_Report.pdf` | The full project report, Chapters 1–5, to the FOCIS manual |
+| `docs/SAPTS_Defence_Presentation.pptx` | The defence deck, on the faculty template |
+| `docs/XAMPP_SETUP.md` | Installation, enrolment and troubleshooting |
+| `docs/faculty/` | The faculty's own manual and presentation template |
